@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>📱 App Tracker</title>
+    <style>* {margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#333;min-height:100vh}.header{background:linear-gradient(135deg,#667eea0%,#764ba2 100%);color:white;padding:30px 20px;text-align:center}.header h1{font-size:28px;margin-bottom:5px}.header p{opacity:.85;font-size:14px}.container{max-width:800px;margin:0 auto;padding:20px}.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:20px}.stat-card{background:white;border-radius:12px;padding:20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.08)}.stat-card .number{font-size:32px;font-weight:bold;color:#667eea}.stat-card .label{font-size:13px;color:#888;margin-top:5px}.section{background:white;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.08)}.section h2{font-size:18px;margin-bottom:15px;color:#555}.record-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0}.record-item:last-child{border-bottom:none}.app-name{font-weight:600;font-size:16px}.app-time{color:#999;font-size:13px}.app-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px}.badge-open{background:#e8f5e9;color:#2e7d32}.badge-close{background:#ffebee;color:#c62828}.loading{text-align:center;padding:40px;color:#999}.spinner{display:inline-block;width:30px;height:30px;border:3px solid#e0e0e0;border-top:3px solid #667eea;border-radius:50%;animation:spin.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.ask-section{display:flex;gap:10px;margin-bottom:10px}.ask-section input{flex:1;padding:12px;border:1px solid#ddd;border-radius:8px;font-size:15px}.ask-section button{padding:12px 20px;background:#667eea;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer}.ask-section button:hover{background:#5a6fd6}.ask-result{background:#f8f9ff;border-radius:8px;padding:15px;margin-top:10px;white-space:pre-wrap;line-height:1.6;display:none}.top-app{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid#f5f5f5}.top-app:last-child{border-bottom:none}.top-app .rank{color:#999;margin-right:10px}.footer{text-align:center;padding:20px;color:#aaa;font-size:12px}</style>
+</head>
+<body>
+    <div class="header">
+        <h1>📱 App Tracker</h1>
+        <p id="dateDisplay">加载...</p>
+    </div>
+    <div class="container">
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><div class="number" id="totalRecords">-</div><div class="label">总记录</div></div>
+            <div class="stat-card"><div class="number" id="totalOpens">-</div><div class="label">打开次数</div></div>
+            <div class="stat-card"><div class="number" id="uniqueApps">-</div><div class="label">使用App数</div></div>
+        </div>
+        <div class="section">
+            <h2>🏆 严日 Top App</h2>
+            <div id="topAppsList"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+        <div class="section">
+            <h2>🤖 AI 问一问</h2>
+            <div class="ask-section">
+                <input type="text" id="questionInput" placeholder="例如：我昨晚凂点睡的？今天玩了多久抖音？">
+                <button onclick="askAI()">问问AI</button>
+            </div>
+            <div id="askResult" class="ask-result"></div>
+        </div>
+        <div class="section">
+            <h2>📋 最新评评</h2>
+            <div id="recordsList"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+        <div class="footer">Powered by App Tracker · Data stored in cloud</div>
+    </div>
+    <script>
+        async function fetchAPI(url,opts){ const resp=await fetch(url,opts);return resp.json() }
+
+        async function loadStats(){
+            try{
+                const data=await fetchAPI(\"/api/records/today/stats\");
+                document.getElementById('totalRecords').textContent=data.total_records;
+                document.getElementById('totalOpens').textContent=data.total_opens;
+                document.getElementById('uniqueApps').textContent=(data.top_apps||[]).length;
+                document.getElementById('dateDisplay').textContent=`⟌� ${data.date} 的使用报告`;
+                const topList=document.getElementById('topAppsList');
+                if(data.top_apps&&.length){
+                    topList.innerHTML=data.top_apps.map((ap,s)=>`<div class=\"top-app\"><span><span class=\"rank\">#${s+1}</span>${ap.name}</span><span>${ap.count}次</span></div>`).join('')}}catch(e){console.error(e)}}
+
+        async function loadRecords(){
+            try{
+                const data=await fetchAPI(\"/api/records/today\");
+                const list=document.getElementById('recordsList');
+                if(data.records&&.length){
+                    list.innerHTML=data.records.map(r=>{
+                        const ts=new Date(r.timestamp);
+                        const time=ts.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+                        const bgCls=r.action==='open'?'badge-open':'badge-close';
+                        const bgTxt=r.action==='open'?'打开':'关闭';
+                        return `<div class=\"record-item\"><div><span class=\"app-name\">${r.app_name}</span> <span class=\"app-badge ${bgCls}\">${bgTxt}</span></div><div class=\"app-time\">${time}</div></div>`;
+                    }).join('')}}catch(e){console.error(e)}}
+
+        async function askAI(){
+            const input=document.getElementById('questionInput');
+            const result=document.getElementById('askResult');
+            const q=input.value.trim();
+            if(!q){alert('请输入问题');return}
+            result.style.display='block';
+            result.innerHTML='<div class=\"loading\"><div class=\"spinner\"></div><br>AI 思考中...</div>';
+            try{
+                const resp=await fetch('/api/ask',{method:'POST',headers:{['Content-Type']:'application/json'},body:JSON.stringify([question: q]});
+                const data=await resp.json();
+                if(data.success){result.innerHTML='<strong>���� AI</strong><br>'+data.answer}else{result.innerHTML='❌ +(data.error||'请求失败')}}catch(e){result.innerHTML='❌ 请求出：'+e.message}}
+
+        document.getElementById('questionInput').addEventListener('keydown',function(e){if(e.key==='Enter')askAI()});
+        loadStats();loadRecords();
+        setInterval(()=>{loadStats();loadRecords()},30000);
+    </script>
+</body>
+</html>
