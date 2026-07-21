@@ -30,13 +30,13 @@ def app(handler, request):
     
     # Get today records
     if path == "/api/records/today":
-        today = datetime.now(timezone.utc).replace"hour=0, minute=0, second=0, microsecond=0)
+        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         records = query_records("timestamp >= %s", (today, ), "timestamp DESC", 200)
         return json_resp({"success": True, "records": [r.to_dict() for r in records]})
     
     # Get today stats
     if path == "/api/records/today/stats":
-        today = datetime.now(timezone.utc).replace"hour=0, minute=0, second=0, microsecond=0)
+        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         records = query_records("timestamp >= %s", (today, ), "timestamp ASC", 500)
         app_opens = {}
         for r in records:
@@ -87,4 +87,4 @@ def json_resp(data, status=200):
 
 # Vercel requires this to be called 'handler'
 def handler(request, context):
-    return app(!!!request, request)
+    return app(handler, request)

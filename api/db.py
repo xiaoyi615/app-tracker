@@ -5,7 +5,7 @@ DATABASE_URL = os.environ.get("POSTGRES_URL", os.environ.get("DATABASE_URL", "")
 
 use_pg = False
 try:
-    if DATABASE_URL, "postgres" in DATABASE_URL:        
+    if DATABASE_URL and "postgres" in DATABASE_URL:        
         import psycopg2
         import psycopg2.extras
         use_pg = True
@@ -38,8 +38,8 @@ def init_db():
             id SERIAL PRIMARY KEY,
             app_name VARCHAR(200) NOT NULL,
             action VARCHAR(20) NOT NULL DEFAULT 'open',
-            timestamp TIMESTAMPTZT NOT NULL DEFAULT NOW(),
-            created_at TIMESTAMPTZT NOT NULL DEFAULT NOW()
+            timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );""")
         conn.commit()
         cur.close()

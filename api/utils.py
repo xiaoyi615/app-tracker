@@ -18,7 +18,25 @@ def send_bark_push(title, body, url=None):
 
 def query_deepseek(messages, max_tokens=1024):
     if not DEEPSEEK_API_KEY:
-        return None, "DeepSeek key not set"}
+        return None, "DeepSeek key not set"
+    try:
+        headers = {
+            "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "deepseek-chat",
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": 0.3,
+            "stream": False
+        }
+        resp = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload, timeout=30)
+        resp.raise_for_status()
+        result = resp.json()
+        return result["choices"][0]["message"]["content"], None
+    except Exception as e:
+        return None, str(e)
 
 def analyze_usage_with_deepseek(records, question):
     if not records:

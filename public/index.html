@@ -44,7 +44,7 @@
                 document.getElementById('totalRecords').textContent=data.total_records;
                 document.getElementById('totalOpens').textContent=data.total_opens;
                 document.getElementById('uniqueApps').textContent=(data.top_apps||[]).length;
-                document.getElementById('dateDisplay').textContent=`⟌� ${data.date} 的使用报告`;
+                document.getElementById('dateDisplay').textContent=`⟌� ${data.date} 的使用报告`;
                 const topList=document.getElementById('topAppsList');
                 if(data.top_apps&&.length){
                     topList.innerHTML=data.top_apps.map((ap,s)=>`<div class=\"top-app\"><span><span class=\"rank\">#${s+1}</span>${ap.name}</span><span>${ap.count}次</span></div>`).join('')}}catch(e){console.error(e)}}
@@ -70,9 +70,9 @@
             result.style.display='block';
             result.innerHTML='<div class=\"loading\"><div class=\"spinner\"></div><br>AI 思考中...</div>';
             try{
-                const resp=await fetch('/api/ask',{method:'POST',headers:{['Content-Type']:'application/json'},body:JSON.stringify([question: q]});
+                const resp=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question: q})});
                 const data=await resp.json();
-                if(data.success){result.innerHTML='<strong>���� AI</strong><br>'+data.answer}else{result.innerHTML='❌ +(data.error||'请求失败')}}catch(e){result.innerHTML='❌ 请求出：'+e.message}}
+                if(data.success){result.innerHTML='<strong>🤖 AI</strong><br>'+data.answer}else{result.innerHTML='❌ '+(data.error||'请求失败')}}catch(e){result.innerHTML='❌ 请求出错：'+e.message}}
 
         document.getElementById('questionInput').addEventListener('keydown',function(e){if(e.key==='Enter')askAI()});
         loadStats();loadRecords();
