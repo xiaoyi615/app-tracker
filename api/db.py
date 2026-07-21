@@ -103,3 +103,5 @@ def count_records(where="", params=None):
         return count
     except:
         return 0
+
+# DB connected - Neon Ready!
