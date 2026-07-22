@@ -18,19 +18,19 @@
             <div class="stat-card"><div class="number" id="uniqueApps">-</div><div class="label">使用App数</div></div>
         </div>
         <div class="section">
-            <h2>🏆 严日 Top App</h2>
+            <h2>🏆 今日 Top App</h2>
             <div id="topAppsList"><div class="loading"><div class="spinner"></div></div></div>
         </div>
         <div class="section">
             <h2>🤖 AI 问一问</h2>
             <div class="ask-section">
-                <input type="text" id="questionInput" placeholder="例如：我昨晚凂点睡的？今天玩了多久抖音？">
+                <input type="text" id="questionInput" placeholder="例如：我昨晚几点睡的？今天玩了多久抖音？">
                 <button onclick="askAI()">问问AI</button>
             </div>
             <div id="askResult" class="ask-result"></div>
         </div>
         <div class="section">
-            <h2>📋 最新评评</h2>
+            <h2>📋 最新记录</h2>
             <div id="recordsList"><div class="loading"><div class="spinner"></div></div></div>
         </div>
         <div class="footer">Powered by App Tracker · Data stored in cloud</div>
@@ -40,27 +40,29 @@
 
         async function loadStats(){
             try{
-                const data=await fetchAPI(\"/api/records/today/stats\");
-                document.getElementById('totalRecords').textContent=data.total_records;
-                document.getElementById('totalOpens').textContent=data.total_opens;
+                const data=await fetchAPI("/api/records/today/stats");
+                document.getElementById('totalRecords').textContent=data.total_records||0;
+                document.getElementById('totalOpens').textContent=data.total_opens||0;
                 document.getElementById('uniqueApps').textContent=(data.top_apps||[]).length;
-                document.getElementById('dateDisplay').textContent=`⟌� ${data.date} 的使用报告`;
+                document.getElementById('dateDisplay').textContent='📅 '+(data.date||'今天')+' 的使用报告';
                 const topList=document.getElementById('topAppsList');
-                if(data.top_apps&&.length){
-                    topList.innerHTML=data.top_apps.map((ap,s)=>`<div class=\"top-app\"><span><span class=\"rank\">#${s+1}</span>${ap.name}</span><span>${ap.count}次</span></div>`).join('')}}catch(e){console.error(e)}}
+                if(data.top_apps&&data.top_apps.length){
+                    topList.innerHTML=data.top_apps.map((ap,s)=>`<div class="top-app"><span><span class="rank">#${s+1}</span>${ap.name}</span><span style="color:#667eea;font-weight:bold;">${ap.count}次</span></div>`).join('')}else{topList.innerHTML='<div style="color:#999;text-align:center;padding:20px;">今天还没有记录哦～</div>'} 
+            }catch(e){console.error(e)}}
 
         async function loadRecords(){
             try{
-                const data=await fetchAPI(\"/api/records/today\");
+                const data=await fetchAPI("/api/records/today");
                 const list=document.getElementById('recordsList');
-                if(data.records&&.length){
+                if(data.records&&data.records.length){
                     list.innerHTML=data.records.map(r=>{
                         const ts=new Date(r.timestamp);
                         const time=ts.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
                         const bgCls=r.action==='open'?'badge-open':'badge-close';
                         const bgTxt=r.action==='open'?'打开':'关闭';
-                        return `<div class=\"record-item\"><div><span class=\"app-name\">${r.app_name}</span> <span class=\"app-badge ${bgCls}\">${bgTxt}</span></div><div class=\"app-time\">${time}</div></div>`;
-                    }).join('')}}catch(e){console.error(e)}}
+                        return `<div class="record-item"><div><span class="app-name">${r.app_name}</span> <span class="app-badge ${bgCls}">${bgTxt}</span></div><div class="app-time">${time}</div></div>`
+                    }).join('')}else{list.innerHTML='<div style="color:#999;text-align:center;padding:20px;">暂无记录，打开 App 后会自动记录 📝</div>'}
+            }catch(e){console.error(e)}}
 
         async function askAI(){
             const input=document.getElementById('questionInput');
